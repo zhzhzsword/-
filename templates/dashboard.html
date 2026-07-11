@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>学习仪表盘 - 图书馆智能服务系统</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 220px;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 0;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .sidebar-logo {
+            padding: 0 20px 20px;
+            font-size: 18px;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+        .sidebar-menu {
+            list-style: none;
+            margin-top: 20px;
+        }
+        .sidebar-menu li a {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 20px;
+            color: rgba(255,255,255,0.8);
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .sidebar-menu li a:hover,
+        .sidebar-menu li a.active {
+            background: rgba(255,255,255,0.15);
+            color: white;
+        }
+        .main-content {
+            flex: 1;
+            margin-left: 220px;
+            padding: 30px;
+        }
+        .page-header {
+            margin-bottom: 30px;
+        }
+        .page-header h1 {
+            font-size: 24px;
+            color: #2c3e50;
+            margin-bottom: 5px;
+        }
+        .page-header p {
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .stat-card .icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            margin-bottom: 12px;
+        }
+        .stat-card .icon.blue { background: #e7f3ff; }
+        .stat-card .icon.green { background: #e8f8f0; }
+        .stat-card .icon.orange { background: #fff4e6; }
+        .stat-card .icon.purple { background: #f3e8ff; }
+        .stat-card .label {
+            color: #7f8c8d;
+            font-size: 13px;
+            margin-bottom: 5px;
+        }
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .stat-card .unit {
+            font-size: 14px;
+            color: #7f8c8d;
+            font-weight: normal;
+        }
+        .chart-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+        .card-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+        .weekly-chart {
+            height: 200px;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-around;
+            gap: 8px;
+            padding: 10px 0;
+        }
+        .bar-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+        .bar {
+            width: 100%;
+            max-width: 40px;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            border-radius: 8px 8px 0 0;
+            min-height: 10px;
+            transition: all 0.3s;
+        }
+        .bar:hover {
+            opacity: 0.8;
+        }
+        .bar-label {
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+        .bar-value {
+            font-size: 11px;
+            color: #95a5a6;
+        }
+        .subject-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .subject-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .subject-name {
+            width: 60px;
+            font-size: 13px;
+            color: #555;
+        }
+        .subject-bar {
+            flex: 1;
+            height: 8px;
+            background: #ecf0f1;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .subject-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+        }
+        .subject-value {
+            width: 50px;
+            text-align: right;
+            font-size: 12px;
+            color: #7f8c8d;
+        }
+        .achievements {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+        .achievement {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+        .achievement-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+        .achievement-name {
+            font-size: 12px;
+            color: #555;
+        }
+        .achievement.locked {
+            opacity: 0.4;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-logo">📚 图书馆智能服务</div>
+            <ul class="sidebar-menu">
+                <li><a href="/dashboard" class="active">📊 学习仪表盘</a></li>
+                <li><a href="/learning-path">🎯 学习路径</a></li>
+                <li><a href="/reading-group">📖 共读小组</a></li>
+                <li><a href="/pomodoro">🍅 番茄钟</a></li>
+                <li><a href="/">💬 智能助手</a></li>
+            </ul>
+        </aside>
+        <main class="main-content">
+            <div class="page-header">
+                <h1>学习仪表盘</h1>
+                <p>追踪你的学习进度，查看学习数据</p>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="icon blue">⏱️</div>
+                    <div class="label">累计学习时长</div>
+                    <div class="value" id="totalHours">0 <span class="unit">小时</span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon green">📅</div>
+                    <div class="label">学习天数</div>
+                    <div class="value" id="studyDays">0 <span class="unit">天</span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon orange">🔥</div>
+                    <div class="label">连续学习</div>
+                    <div class="value" id="streakDays">0 <span class="unit">天</span></div>
+                </div>
+                <div class="stat-card">
+                    <div class="icon purple">📚</div>
+                    <div class="label">已读书籍</div>
+                    <div class="value" id="booksRead">0 <span class="unit">本</span></div>
+                </div>
+            </div>
+            
+            <div class="chart-row">
+                <div class="card">
+                    <div class="card-title">📈 近7天学习时长</div>
+                    <div class="weekly-chart" id="weeklyChart"></div>
+                </div>
+                <div class="card">
+                    <div class="card-title">📊 学科分布</div>
+                    <div class="subject-list" id="subjectList"></div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <div class="card-title">🏆 学习成就</div>
+                <div class="achievements">
+                    <div class="achievement">
+                        <div class="achievement-icon">🌱</div>
+                        <div class="achievement-name">初学者</div>
+                    </div>
+                    <div class="achievement">
+                        <div class="achievement-icon">📖</div>
+                        <div class="achievement-name">阅读达人</div>
+                    </div>
+                    <div class="achievement">
+                        <div class="achievement-icon">🔥</div>
+                        <div class="achievement-name">连续7天</div>
+                    </div>
+                    <div class="achievement locked">
+                        <div class="achievement-icon">🏆</div>
+                        <div class="achievement-name">月度之星</div>
+                    </div>
+                    <div class="achievement locked">
+                        <div class="achievement-icon">💎</div>
+                        <div class="achievement-name">学习大师</div>
+                    </div>
+                    <div class="achievement locked">
+                        <div class="achievement-icon">🚀</div>
+                        <div class="achievement-name">效率达人</div>
+                    </div>
+                    <div class="achievement locked">
+                        <div class="achievement-icon">🎯</div>
+                        <div class="achievement-name">目标达成</div>
+                    </div>
+                    <div class="achievement locked">
+                        <div class="achievement-icon">🌟</div>
+                        <div class="achievement-name">全能学霸</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script>
+        async function loadDashboard() {
+            try {
+                const response = await fetch('/api/dashboard');
+                const data = await response.json();
+                
+                document.getElementById('totalHours').innerHTML = 
+                    data.total_study_hours + ' <span class="unit">小时</span>';
+                document.getElementById('studyDays').innerHTML = 
+                    data.total_study_days + ' <span class="unit">天</span>';
+                document.getElementById('streakDays').innerHTML = 
+                    data.streak_days + ' <span class="unit">天</span>';
+                document.getElementById('booksRead').innerHTML = 
+                    data.total_books_read + ' <span class="unit">本</span>';
+                
+                renderWeeklyChart(data.weekly_data);
+                renderSubjectList(data.subject_distribution);
+            } catch (error) {
+                console.error('加载仪表盘数据失败:', error);
+            }
+        }
+        
+        function renderWeeklyChart(weeklyData) {
+            const chart = document.getElementById('weeklyChart');
+            const maxValue = Math.max(...Object.values(weeklyData), 60);
+            
+            chart.innerHTML = '';
+            for (const [day, minutes] of Object.entries(weeklyData)) {
+                const height = (minutes / maxValue) * 150;
+                const barWrapper = document.createElement('div');
+                barWrapper.className = 'bar-wrapper';
+                barWrapper.innerHTML = `
+                    <div class="bar-value">${minutes}分钟</div>
+                    <div class="bar" style="height: ${height}px"></div>
+                    <div class="bar-label">${day}</div>
+                `;
+                chart.appendChild(barWrapper);
+            }
+        }
+        
+        function renderSubjectList(subjectDist) {
+            const list = document.getElementById('subjectList');
+            const colors = ['#667eea', '#764ba2', '#4facfe', '#00f2fe', '#f093fb', '#fa709a', '#f5576c'];
+            const maxValue = Math.max(...Object.values(subjectDist), 60);
+            
+            list.innerHTML = '';
+            let colorIndex = 0;
+            for (const [subject, minutes] of Object.entries(subjectDist)) {
+                const width = (minutes / maxValue) * 100;
+                const item = document.createElement('div');
+                item.className = 'subject-item';
+                item.innerHTML = `
+                    <div class="subject-name">${subject}</div>
+                    <div class="subject-bar">
+                        <div class="subject-bar-fill" style="width: ${width}%; background: ${colors[colorIndex % colors.length]}"></div>
+                    </div>
+                    <div class="subject-value">${minutes}分钟</div>
+                `;
+                list.appendChild(item);
+                colorIndex++;
+            }
+        }
+        
+        loadDashboard();
+    </script>
+</body>
+</html>
